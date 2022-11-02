@@ -111,6 +111,92 @@ impl BodyParameters {
     }
 }
 
+fn circular_omega(mass: f64, radius: f64) -> f64 {
+    f64::sqrt(G * mass / radius) / radius
+}
+
+fn schwarzchild_radius(mass: f64) -> f64 {
+    2. * mass * G / (C * C)
+}
+
+fn gen_initial_condition(
+    m: f64,
+    r: f64,
+    v: f64,
+    theta: f64,
+    omega: Option<f64>,
+    h: Option<f64>,
+) -> Result<BodyParameters, &'static str> {
+    match (omega, h) {
+        (None, None) => Err("Either omega or h must be specified."),
+        (Some(omega), None) => Ok(BodyParameters {
+            M: m,
+            r,
+            v,
+            theta,
+            omega,
+        }),
+        (None, Some(h)) => Ok(BodyParameters {
+            M: m,
+            r,
+            v,
+            theta,
+            omega: h / (r * r),
+        }),
+        (Some(_), Some(_)) => Err("omega and h cannot both be specified."),
+    }
+}
+
+fn simulate_conditions_rel(
+    mut initial_condition: BodyParameters,
+    max_theta: f64,
+    max_r: f64,
+    history_interval: usize,
+    mut time_step: f64,
+    version: usize,
+) -> Result<Array2<f64>, &'static str> {
+    let time_step_in_s = time_step;
+    if let 1..=3 = version {
+    } else {
+        return Err("version must be 1 - 3");
+    }
+    let update_fns = [
+        BodyParameters::update_relativity_v1,
+        BodyParameters::update_relativity_v2,
+        BodyParameters::update_relativity_v3,
+    ];
+    let mut history = Vec::new();
+    let mut steps = 0;
+    let mut positive_v = true;
+    if version != 1 {
+        initial_condition.geometrizish_quantities();
+        time_step *= C;
+    }
+    while initial_condition.theta <= max_theta
+        && initial_condition.r > 0.
+        && initial_condition.r <= max_r
+    {
+        update_fns[version - 1](&mut initial_condition, time_step);
+        if steps % history_interval == 0 || {
+            let changed = (initial_condition.v >= 0.) ^ positive_v;
+            if changed {
+                positive_v = !positive_v;
+            }
+            changed
+        } {
+            history.push([
+                initial_condition.r,
+                initial_condition.theta,
+                steps as f64 * time_step_in_s,
+            ]);
+            print!("\r{:.2}%", 100. * initial_condition.theta / max_theta);
+        }
+        steps += 1;
+    }
+    println!("\r100.00%");
+    Ok(Array2::from(history))
+}
+
 /// Simulates orbits around a Schwarzchild black hole.
 #[pymodule]
 fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -121,7 +207,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
     /// for a given radius and central mass.
     #[pyfn(m)]
     fn circular_omega(mass: f64, radius: f64) -> f64 {
-        f64::sqrt(G * mass / radius) / radius
+        crate::circular_omega(mass, radius)
     }
 
     /// schwarzchild_radius(mass, /)
@@ -130,7 +216,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
     /// Find the schwarzchild radius of an object of mass `mass`.
     #[pyfn(m)]
     fn schwarzchild_radius(mass: f64) -> f64 {
-        2. * mass * G / (C * C)
+        crate::schwarzchild_radius(mass)
     }
 
     /// gen_initial_condition(m, r, v, theta, omega, h, /)
@@ -147,28 +233,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
         omega: Option<f64>,
         h: Option<f64>,
     ) -> PyResult<BodyParameters> {
-        match (omega, h) {
-            (None, None) => Err(PyValueError::new_err(
-                "Either omega or h must be specified.",
-            )),
-            (Some(omega), None) => Ok(BodyParameters {
-                M: m,
-                r,
-                v,
-                theta,
-                omega,
-            }),
-            (None, Some(h)) => Ok(BodyParameters {
-                M: m,
-                r,
-                v,
-                theta,
-                omega: h / (r * r),
-            }),
-            (Some(_), Some(_)) => Err(PyValueError::new_err(
-                "omega and h cannot both be specified.",
-            )),
-        }
+        crate::gen_initial_condition(m, r, v, theta, omega, h).map_err(|s| PyValueError::new_err(s))
     }
 
     /// simulate_conditions_rel(initial_condition, max_theta, max_r, history_interval, time_step, /)
@@ -187,53 +252,23 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
     )]
     fn simulate_conditions_rel(
         py: Python,
-        mut initial_condition: BodyParameters,
+        initial_condition: BodyParameters,
         max_theta: f64,
         max_r: f64,
         history_interval: usize,
-        mut time_step: f64,
+        time_step: f64,
         version: usize,
     ) -> PyResult<&numpy::PyArray2<f64>> {
-        let time_step_in_s = time_step;
-        if let 1..=3 = version {
-        } else {
-            return Err(PyValueError::new_err("version must be 1 - 3"));
-        }
-        let update_fns = [
-            BodyParameters::update_relativity_v1,
-            BodyParameters::update_relativity_v2,
-            BodyParameters::update_relativity_v3,
-        ];
-        let mut history = Vec::new();
-        let mut steps = 0;
-        let mut positive_v = true;
-        if version != 1 {
-            initial_condition.geometrizish_quantities();
-            time_step *= C;
-        }
-        while initial_condition.theta <= max_theta
-            && initial_condition.r > 0.
-            && initial_condition.r <= max_r
-        {
-            update_fns[version - 1](&mut initial_condition, time_step);
-            if steps % history_interval == 0 || {
-                let changed = (initial_condition.v >= 0.) ^ positive_v;
-                if changed {
-                    positive_v = !positive_v;
-                }
-                changed
-            } {
-                history.push([
-                    initial_condition.r,
-                    initial_condition.theta,
-                    steps as f64 * time_step_in_s,
-                ]);
-                print!("\r{:.2}%", 100. * initial_condition.theta / max_theta);
-            }
-            steps += 1;
-        }
-        println!("\r100.00%");
-        Ok(Array2::from(history).into_pyarray(py))
+        crate::simulate_conditions_rel(
+            initial_condition,
+            max_theta,
+            max_r,
+            history_interval,
+            time_step,
+            version,
+        )
+        .map_err(|s| PyValueError::new_err(s))
+        .map(|history| history.into_pyarray(py))
     }
 
     m.add("M_sun", M_SUN)?;
