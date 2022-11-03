@@ -317,3 +317,26 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn run_schwarzchild_sim() {
+        simulate_conditions_rel(
+            BodyParameters {
+                M: M_SUN,
+                r: 6.9818e10,
+                v: 0.,
+                theta: 0.,
+                omega: 3.886e4 / 6.9818e10,
+            },
+            100.*2.*std::f64::consts::PI,
+            10.*AU,
+            10000,
+            1e-1,
+            3,
+        ).unwrap();
+    }
+}
