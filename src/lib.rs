@@ -109,6 +109,11 @@ impl BodyParameters {
     fn clone(&self) -> Self {
         <Self as Clone>::clone(self)
     }
+
+    /// Calculate the specific angular momentum.
+    fn get_h(&self) -> f64 {
+        self.r*self.r*self.omega
+    }
 }
 
 fn circular_omega(mass: f64, radius: f64) -> f64 {
