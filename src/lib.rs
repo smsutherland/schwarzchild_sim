@@ -161,8 +161,7 @@ fn simulate_conditions_rel(
     version: usize,
 ) -> Result<Array2<f64>, &'static str> {
     let time_step_in_s = time_step;
-    if let 1..=3 = version {
-    } else {
+    if !(1..=3).contains(&version) {
         return Err("version must be 1 - 3");
     }
     let update_fns = [
