@@ -24,24 +24,7 @@ pub struct BodyParameters {
 }
 
 impl BodyParameters {
-    #[allow(dead_code)]
-    fn update_newtonian(&mut self, delta_t: f64) {
-        let dr = self.v * delta_t;
-        let dtheta = self.omega * delta_t;
-        let domega = -2. * self.omega * dr / self.r;
-        let dv1 = -0.5 * self.r * domega;
-        let dv2 = self.r * self.omega * self.omega * delta_t;
-        let dv3 = -G * self.M * delta_t / (self.r * self.r);
-        let dv4 = -self.omega * dr;
-        let dv = dv1 + dv2 + dv3 + dv4;
-
-        self.r += dr;
-        self.theta += dtheta;
-        self.omega += domega;
-        self.v += dv;
-    }
-
-    fn update_relativity_v1(&mut self, delta_s: f64) {
+    fn update_v1(&mut self, delta_s: f64) {
         let rs = 2. * self.M * G / (C * C);
 
         let dr = self.v * delta_s;
@@ -59,7 +42,7 @@ impl BodyParameters {
     }
 
     /// Assumes self has geometrizished quantities and delta_s scaled by `C`.
-    fn update_relativity_v2(&mut self, delta_s: f64) {
+    fn update_v2(&mut self, delta_s: f64) {
         let r2 = self.r * self.r;
         let omega2 = self.omega * self.omega;
 
@@ -75,7 +58,7 @@ impl BodyParameters {
     }
 
     /// Assumes self has geometrizished quantities and delta_s scaled by `C`.
-    fn update_relativity_v3(&mut self, delta_s: f64) {
+    fn update_v3(&mut self, delta_s: f64) {
         let r2 = self.r * self.r;
         let omega2 = self.omega * self.omega;
 
@@ -90,21 +73,21 @@ impl BodyParameters {
         self.v += dv;
     }
 
-        /// Assumes self has geometrizished quantities and delta_s scaled by `C`.
-        fn update_relativity_v4(&mut self, delta_s: f64) {
-            let r2 = self.r * self.r;
-            let omega2 = self.omega * self.omega;
-    
-            let dr = self.v * delta_s;
-            let dtheta = self.omega * delta_s;
-            let dv = (-0.5 * self.M * (1. / r2 + omega2) + (self.r - self.M) * omega2) * delta_s;
-    
-            let old_h = self.get_h();
-            self.r += dr + 0.5 * dv * delta_s;
-            self.theta += dtheta;
-            self.omega = old_h / (self.r * self.r);
-            self.v += dv;
-        }
+    /// Assumes self has geometrizished quantities and delta_s scaled by `C`.
+    fn update_v4(&mut self, delta_s: f64) {
+        let r2 = self.r * self.r;
+        let omega2 = self.omega * self.omega;
+
+        let dr = self.v * delta_s;
+        let dtheta = self.omega * delta_s;
+        let dv = (-0.5 * self.M * (1. / r2 + omega2) + (self.r - self.M) * omega2) * delta_s;
+
+        let old_h = self.get_h();
+        self.r += dr + 0.5 * dv * delta_s;
+        self.theta += dtheta;
+        self.omega = old_h / (self.r * self.r);
+        self.v += dv;
+    }
 
     fn geometrizish_quantities(&mut self) {
         self.M *= 2. * G / (C * C);
@@ -181,10 +164,10 @@ fn simulate_conditions_rel(
         return Err("version must be 1 - 4");
     }
     let update_fns = [
-        BodyParameters::update_relativity_v1,
-        BodyParameters::update_relativity_v2,
-        BodyParameters::update_relativity_v3,
-        BodyParameters::update_relativity_v4,
+        BodyParameters::update_v1,
+        BodyParameters::update_v2,
+        BodyParameters::update_v3,
+        BodyParameters::update_v4,
     ];
     let mut history = Vec::new();
     let mut steps = 0;
