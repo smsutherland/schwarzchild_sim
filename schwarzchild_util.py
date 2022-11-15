@@ -2,7 +2,6 @@ from typing import Optional
 import numpy as np
 import pylab as pl
 from astropy import units as u, constants as c
-from schwarzchild_sim import BodyParameters
 
 u.century = u.def_unit("century", 100*u.yr, "A century. 100 years.")
 
@@ -22,20 +21,20 @@ def calculate_precession(orbit: np.ndarray, per_orbit: bool = False):
     orbit = orbit.T
     r = orbit[0]
     theta = orbit[1]
+    time = orbit[2]
 
     r_maxima = np.r_[True, r[1:] > r[:-1]] & np.r_[r[:-1] > r[1:], True]
     apoapsies = theta[r_maxima][1:-1]
     apoapsies -= 2*np.pi*np.arange(0, apoapsies.shape[0])
-    average_change = apoapsies[-1] - apoapsies[1]
+    average_change = apoapsies[-1] - apoapsies[0]
     if per_orbit:
-        return average_change * u.rad
+        return average_change/(apoapsies.shape[0] - 1) * u.rad
     else:
-        time = orbit[2]
-        times = time[r_maxima]
-        average_change_time = np.mean(times[-1] - times[1])
+        times = time[r_maxima][1:-1]
+        average_change_time = times[-1] - times[0]
         return average_change/average_change_time * u.rad / u.s
 
-def calculate_expected_precession(params: BodyParameters):
+def calculate_expected_precession(params):
     """
     calculate the expected precession of the periapsis of the orbit.
     Takes in a BodyParameters object
