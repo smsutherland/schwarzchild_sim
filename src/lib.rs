@@ -163,21 +163,31 @@ fn simulate_conditions_rel(
     if !(1..=4).contains(&version) {
         return Err("version must be 1 - 4");
     }
+
     let update_fns = [
         BodyParameters::update_v1,
         BodyParameters::update_v2,
         BodyParameters::update_v3,
         BodyParameters::update_v4,
     ];
+
     let mut history = Vec::new();
     let mut steps = 0;
     let mut positive_v = true;
+
     if version != 1 {
         initial_condition.geometrizish_quantities();
         time_step *= C;
     }
+
+    let r_s = if version != 1 {
+        initial_condition.M
+    } else {
+        2. * G * initial_condition.M / (C * C)
+    };
+
     while initial_condition.theta <= max_theta
-        && initial_condition.r > 0.
+        && initial_condition.r > r_s
         && initial_condition.r <= max_r
     {
         update_fns[version - 1](&mut initial_condition, time_step);
@@ -197,6 +207,7 @@ fn simulate_conditions_rel(
         }
         steps += 1;
     }
+
     println!("\r100.00%");
     Ok(Array2::from(history))
 }
@@ -285,7 +296,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
             r: schwarzchild_radius(M_SUN) * 200.,
             v: 0.,
             theta: 0.,
-            omega: 100.,
+            omega: 35.,
         },
     )?;
     m.add(
@@ -305,7 +316,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
             r: schwarzchild_radius(M_SUN) * 20.,
             v: 0.,
             theta: 0.,
-            omega: 8000. * 0.064,
+            omega: 510.208,
         },
     )?;
     m.add(
