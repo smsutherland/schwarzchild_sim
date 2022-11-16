@@ -17,7 +17,7 @@ def simulate_conditions_rel(
     max_r: float = 10*1.5e11,
     history_interval: int = 100000,
     time_step: float = 1e-5,
-    version: int = 1,
+    version: int = 4,
 ) -> np.ndarray: ...
 
 class BodyParameters:

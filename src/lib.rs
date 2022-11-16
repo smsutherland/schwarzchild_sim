@@ -252,7 +252,7 @@ fn schwarzchild_sim(_py: Python, m: &PyModule) -> PyResult<()> {
         max_r = "10.*AU",
         history_interval = "100000",
         time_step = "1e-5",
-        version = "1"
+        version = "4"
     )]
     fn simulate_conditions_rel(
         py: Python,
