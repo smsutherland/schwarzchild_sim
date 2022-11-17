@@ -69,8 +69,10 @@ small_precession_preset = (
     }
 )
 
+two_lobe_zoom_whirl_preset_params = schwarzchild_sim.zoom_whirl.clone()
+two_lobe_zoom_whirl_preset_params.omega *= 0.9988
 two_lobe_zoom_whirl_preset = (
-    schwarzchild_sim.zoom_whirl.clone(),
+    two_lobe_zoom_whirl_preset_params,
     {
         "max_theta": 10*2*np.pi,
         "time_step": 1e-8,
@@ -79,9 +81,20 @@ two_lobe_zoom_whirl_preset = (
 )
 
 three_lobe_zoom_whirl_preset_params = schwarzchild_sim.zoom_whirl.clone()
-three_lobe_zoom_whirl_preset_params.omega *= 1.062
+three_lobe_zoom_whirl_preset_params.omega *= 1.064124
 three_lobe_zoom_whirl_preset = (
     three_lobe_zoom_whirl_preset_params,
+    {
+        "max_theta": 10*2*np.pi,
+        "time_step": 1e-8,
+        "history_interval": 1000,
+    }
+)
+
+one_lobe_zoom_whirl_preset_params = schwarzchild_sim.zoom_whirl.clone()
+one_lobe_zoom_whirl_preset_params.omega *= 0.95395
+one_lobe_zoom_whirl_preset = (
+    one_lobe_zoom_whirl_preset_params,
     {
         "max_theta": 10*2*np.pi,
         "time_step": 1e-8,
