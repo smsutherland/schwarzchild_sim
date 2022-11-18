@@ -1,12 +1,18 @@
-from typing import Optional
+from typing import Optional, Union
 import numpy as np
 import pylab as pl
 from astropy import units as u, constants as c
+from astropy.visualization import quantity_support
+quantity_support()
 import schwarzchild_sim
 
 u.century = u.def_unit("century", 100*u.yr, "A century. 100 years.")
 
 def plot_orbit(orbit: np.ndarray, mass: Optional[float] = None):
+    """
+    Plots an orbit as returned from schwarzchild_sim.simulate_conditions_rel.
+    If mass is provided, the schwarzchild radius is also plotted.
+    """
     orbit = orbit.T
 
     r = orbit[0]
@@ -19,6 +25,34 @@ def plot_orbit(orbit: np.ndarray, mass: Optional[float] = None):
         theta = np.linspace(0, 2.*np.pi, 100, endpoint=True)
         pl.polar(theta, r, label="Schwarzchild radius")
         pl.legend()
+
+def plot_effective_potential(orbit, kind: str = "r", xvals: Optional[Union[np.ndarray, u.Quantity]] = None):
+    """
+    Plots the effective potential of the orbit.
+    Kind: "r", "n", or "rn" will plot relativistic, newtonian, or both effective potentials
+    xvals: if provided, will determine the domain over which the effective potential is plotted,
+        otherwise it will be plotted on the domain 1-10 schwarzchild radii.
+    """
+    h: u.Quantity = orbit.get_h() * u.m**2/u.s
+    rs = u.def_unit("schwarzchild radius", orbit.rs()*u.m, format = {"latex": "r_s"})
+    M: u.Quantity = orbit.M*u.kg
+
+    def v_newtonian(r: u.Quantity) -> u.Quantity:
+        return (-c.G*M/r + h**2/(2*r**2)).to(u.J/u.kg)
+    
+    def v_relativistic(r: u.Quantity) -> u.Quantity:
+        return (-c.G*M/r + h**2/(2*r**2) - c.G*M*h**2/(c.c**2*r**3)).to(u.J/u.kg)
+
+    if xvals is None:
+        xvals = np.arange(1., 10., 0.1)*rs
+    elif isinstance(xvals, np.ndarray):
+        xvals *= rs
+    
+    if "r" in kind:
+        pl.plot(xvals, v_relativistic(xvals), label="relativistic")
+    if "n" in kind:
+        pl.plot(xvals, v_newtonian(xvals), label="newtonian")
+    pl.legend()
 
 def calculate_precession(orbit: np.ndarray, per_orbit: bool = False):
     """
@@ -109,3 +143,10 @@ mercury_orbit_preset = (
         "time_step": 1e-1,
     }
 )
+
+__all__ = [
+    "plot_orbit", "plot_effective_potential",
+    "calculate_precession", "calculate_expected_precession", "calculate_orbital_period",
+    "small_precession_preset", "two_lobe_zoom_whirl_preset", "three_lobe_zoom_whirl_preset",
+    "one_lobe_zoom_whirl_preset", "mercury_orbit_preset"
+]

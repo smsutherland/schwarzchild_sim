@@ -113,6 +113,10 @@ impl BodyParameters {
     fn get_h(&self) -> f64 {
         self.r * self.r * self.omega
     }
+
+    fn rs(&self) -> f64 {
+        schwarzchild_radius(self.M)
+    }
 }
 
 fn circular_omega(mass: f64, radius: f64) -> f64 {
