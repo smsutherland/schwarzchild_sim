@@ -144,9 +144,17 @@ mercury_orbit_preset = (
     }
 )
 
+earth_orbit_preset = (
+    schwarzchild_sim.earth_orbit.clone(),
+    {
+        "max_theta": 2*np.pi,
+        "time_step": 1,
+    }
+)
+
 __all__ = [
     "plot_orbit", "plot_effective_potential",
     "calculate_precession", "calculate_expected_precession", "calculate_orbital_period",
     "small_precession_preset", "two_lobe_zoom_whirl_preset", "three_lobe_zoom_whirl_preset",
-    "one_lobe_zoom_whirl_preset", "mercury_orbit_preset"
+    "one_lobe_zoom_whirl_preset", "mercury_orbit_preset", "earth_orbit_preset"
 ]
