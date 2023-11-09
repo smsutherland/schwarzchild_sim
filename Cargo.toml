@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "schwarzchild_sim",
+    "schwarzchild_sim_py"
+]
+resolver = "2"

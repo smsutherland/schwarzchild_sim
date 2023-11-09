@@ -1,14 +1,9 @@
 [package]
-name = "schwarz"
+name = "schwarzchild_sim"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-name = "schwarz"
-crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "0.20.0"
-pyo3 = "0.20.0"
-schwarzchild_sim = { path = "../schwarzchild_sim" }
+ndarray = "0.15.6"
