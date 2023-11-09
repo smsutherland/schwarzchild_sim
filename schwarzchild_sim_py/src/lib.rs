@@ -97,6 +97,7 @@ fn schwarzchild_radius(mass: f64) -> f64 {
 }
 
 #[pymodule]
+#[pyo3(name = "_inner")]
 fn schwarz(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<BodyParameters>()?;
     m.add_class::<Solvers>()?;
@@ -107,29 +108,6 @@ fn schwarz(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("C", schwarz_rs::C)?;
     m.add("M_SUN", schwarz_rs::M_SUN)?;
     m.add("AU", schwarz_rs::AU)?;
-
-    m.add::<BodyParameters>(
-        "mercury_orbit",
-        schwarz_rs::BodyParameters {
-            mass: schwarz_rs::M_SUN,
-            radius: 6.9818e10,
-            radial_velocity: 0.,
-            angle: 0.,
-            angular_velocity: 3.886e4 / 6.9818e10,
-        }
-        .into(),
-    )?;
-    m.add::<BodyParameters>(
-        "small_precession",
-        schwarz_rs::BodyParameters {
-            mass: schwarz_rs::M_SUN,
-            radius: schwarzchild_radius(schwarz_rs::M_SUN) * 200.,
-            radial_velocity: 0.,
-            angle: 0.,
-            angular_velocity: 35.,
-        }
-        .into(),
-    )?;
 
     m.add_submodule(simulate_module(py)?)?;
 
