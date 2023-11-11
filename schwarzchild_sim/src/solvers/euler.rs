@@ -78,3 +78,53 @@ fn geometrizish_quantities(initial_condition: &mut BodyParameters, time_step: &m
     initial_condition.angular_velocity /= C;
     *time_step *= C;
 }
+
+pub struct EulerSolve3;
+
+impl Solver for EulerSolve3 {
+    fn init(&mut self, initial_condition: &mut BodyParameters, time_step: &mut f64) {
+        geometrizish_quantities(initial_condition, time_step);
+    }
+
+    fn step(&mut self, condition: &mut BodyParameters, time_step: f64) {
+        let r2 = condition.radius * condition.radius;
+        let omega2 = condition.angular_velocity * condition.angular_velocity;
+
+        let dr = condition.radial_velocity * time_step;
+        let dtheta = condition.angular_velocity * time_step;
+        let domega = -2. * condition.angular_velocity * dr / condition.radius;
+        let dv = (-0.5 * condition.mass * (1. / r2 + omega2)
+            + (condition.radius - condition.mass) * omega2)
+            * time_step;
+
+        condition.radius += dr + 0.5 * dv * time_step;
+        condition.angle += dtheta + 0.5 * domega * time_step;
+        condition.angular_velocity += domega;
+        condition.radial_velocity += dv;
+    }
+}
+
+pub struct EulerSolve4;
+
+impl Solver for EulerSolve4 {
+    fn init(&mut self, initial_condition: &mut BodyParameters, time_step: &mut f64) {
+        geometrizish_quantities(initial_condition, time_step);
+    }
+
+    fn step(&mut self, condition: &mut BodyParameters, time_step: f64) {
+        let r2 = condition.radius * condition.radius;
+        let omega2 = condition.angular_velocity * condition.angular_velocity;
+
+        let dr = condition.radial_velocity * time_step;
+        let dtheta = condition.angular_velocity * time_step;
+        let dv = (-0.5 * condition.mass * (1. / r2 + omega2)
+            + (condition.radius - condition.mass) * omega2)
+            * time_step;
+
+        let old_h = condition.radius * condition.radius * condition.angular_velocity;
+        condition.radius += dr + 0.5 * dv * time_step;
+        condition.angle += dtheta;
+        condition.angular_velocity = old_h / (condition.radius * condition.radius);
+        condition.radial_velocity += dv;
+    }
+}

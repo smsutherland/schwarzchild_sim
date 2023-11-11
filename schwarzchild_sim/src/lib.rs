@@ -57,9 +57,14 @@ pub fn simulate_conditions<S: Solver>(
                 initial_condition.angle,
                 steps as f64 * time_step_in_s,
             ]);
+            print!(
+                "\r{:.2}%",
+                100. * initial_condition.angle / 20. / std::f64::consts::PI
+            );
         }
         steps += 1;
     }
 
+    println!("\r100.00%");
     Ok(Array2::from(history))
 }

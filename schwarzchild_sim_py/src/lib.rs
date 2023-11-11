@@ -116,8 +116,11 @@ fn schwarz(py: Python, m: &PyModule) -> PyResult<()> {
 
 fn simulate_module(py: Python) -> PyResult<&'_ PyModule> {
     let m = PyModule::new(py, "simulate")?;
-    m.add_function(wrap_pyfunction!(simulate_conditions, m)?)?;
-    m.add_function(wrap_pyfunction!(simulate_euler_1, m)?)?;
+    m.add_function(wrap_pyfunction!(run, m)?)?;
+    m.add_function(wrap_pyfunction!(euler_1, m)?)?;
+    m.add_function(wrap_pyfunction!(euler_2, m)?)?;
+    m.add_function(wrap_pyfunction!(euler_3, m)?)?;
+    m.add_function(wrap_pyfunction!(euler_4, m)?)?;
     Ok(m)
 }
 
@@ -125,11 +128,14 @@ fn simulate_module(py: Python) -> PyResult<&'_ PyModule> {
 #[derive(Debug, Clone, Copy)]
 enum Solvers {
     Euler1,
+    Euler2,
+    Euler3,
+    Euler4,
 }
 
 #[pyfunction]
 #[pyo3(signature = (initial_condition, time_step, solver, history_interval = 1, *, max_time, max_r, max_theta))]
-fn simulate_conditions(
+fn run(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
@@ -140,7 +146,34 @@ fn simulate_conditions(
     max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
     match solver {
-        Solvers::Euler1 => simulate_euler_1(
+        Solvers::Euler1 => euler_1(
+            py,
+            initial_condition,
+            time_step,
+            history_interval,
+            max_time,
+            max_r,
+            max_theta,
+        ),
+        Solvers::Euler2 => euler_2(
+            py,
+            initial_condition,
+            time_step,
+            history_interval,
+            max_time,
+            max_r,
+            max_theta,
+        ),
+        Solvers::Euler3 => euler_3(
+            py,
+            initial_condition,
+            time_step,
+            history_interval,
+            max_time,
+            max_r,
+            max_theta,
+        ),
+        Solvers::Euler4 => euler_4(
             py,
             initial_condition,
             time_step,
@@ -180,7 +213,7 @@ fn make_end_condition(
 
 #[pyfunction]
 #[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
-fn simulate_euler_1(
+fn euler_1(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
@@ -196,6 +229,75 @@ fn simulate_euler_1(
         history_interval,
         time_step,
         schwarz_rs::EulerSolve1::new(),
+    )
+    .map_err(PyValueError::new_err)?;
+    Ok(history.to_pyarray(py))
+}
+
+#[pyfunction]
+#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+fn euler_2(
+    py: Python,
+    initial_condition: BodyParameters,
+    time_step: f64,
+    history_interval: usize,
+    max_time: Option<f64>,
+    max_r: Option<f64>,
+    max_theta: Option<f64>,
+) -> PyResult<&numpy::PyArray2<f64>> {
+    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
+    let history = schwarz_rs::simulate_conditions(
+        initial_condition.into(),
+        end_condition,
+        history_interval,
+        time_step,
+        schwarz_rs::EulerSolve2,
+    )
+    .map_err(PyValueError::new_err)?;
+    Ok(history.to_pyarray(py))
+}
+
+#[pyfunction]
+#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+fn euler_3(
+    py: Python,
+    initial_condition: BodyParameters,
+    time_step: f64,
+    history_interval: usize,
+    max_time: Option<f64>,
+    max_r: Option<f64>,
+    max_theta: Option<f64>,
+) -> PyResult<&numpy::PyArray2<f64>> {
+    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
+    let history = schwarz_rs::simulate_conditions(
+        initial_condition.into(),
+        end_condition,
+        history_interval,
+        time_step,
+        schwarz_rs::EulerSolve3,
+    )
+    .map_err(PyValueError::new_err)?;
+    Ok(history.to_pyarray(py))
+}
+
+#[pyfunction]
+#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+fn euler_4(
+    py: Python,
+    initial_condition: BodyParameters,
+    time_step: f64,
+    history_interval: usize,
+    max_time: Option<f64>,
+    max_r: Option<f64>,
+    max_theta: Option<f64>,
+) -> PyResult<&numpy::PyArray2<f64>> {
+    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
+    let history = schwarz_rs::simulate_conditions(
+        initial_condition.into(),
+        end_condition,
+        history_interval,
+        time_step,
+        schwarz_rs::EulerSolve3,
     )
     .map_err(PyValueError::new_err)?;
     Ok(history.to_pyarray(py))
