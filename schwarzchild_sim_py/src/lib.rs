@@ -134,98 +134,35 @@ enum Solvers {
 }
 
 #[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, solver, history_interval = 1, *, max_time, max_r, max_theta))]
+#[pyo3(signature = (initial_condition, time_step, solver, end_time, history_interval = 1))]
 fn run(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
     solver: Solvers,
+    end_time: f64,
     history_interval: usize,
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
     match solver {
-        Solvers::Euler1 => euler_1(
-            py,
-            initial_condition,
-            time_step,
-            history_interval,
-            max_time,
-            max_r,
-            max_theta,
-        ),
-        Solvers::Euler2 => euler_2(
-            py,
-            initial_condition,
-            time_step,
-            history_interval,
-            max_time,
-            max_r,
-            max_theta,
-        ),
-        Solvers::Euler3 => euler_3(
-            py,
-            initial_condition,
-            time_step,
-            history_interval,
-            max_time,
-            max_r,
-            max_theta,
-        ),
-        Solvers::Euler4 => euler_4(
-            py,
-            initial_condition,
-            time_step,
-            history_interval,
-            max_time,
-            max_r,
-            max_theta,
-        ),
+        Solvers::Euler1 => euler_1(py, initial_condition, time_step, end_time, history_interval),
+        Solvers::Euler2 => euler_2(py, initial_condition, time_step, end_time, history_interval),
+        Solvers::Euler3 => euler_3(py, initial_condition, time_step, end_time, history_interval),
+        Solvers::Euler4 => euler_4(py, initial_condition, time_step, end_time, history_interval),
     }
-}
-
-fn make_end_condition(
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
-) -> PyResult<impl Fn(&schwarz_rs::BodyParameters, f64) -> bool> {
-    if max_time.is_none() && max_r.is_none() && max_theta.is_none() {
-        return Err(PyValueError::new_err(
-            "At least one of `max_time`, `max_r`, or `max_theta` must be provided",
-        ));
-    }
-
-    Ok(move |state: &schwarz_rs::BodyParameters, time: f64| {
-        let mut end = false;
-        if let Some(max_time) = max_time {
-            end |= time >= max_time;
-        }
-        if let Some(max_r) = max_r {
-            end |= state.radius >= max_r;
-        }
-        if let Some(max_theta) = max_theta {
-            end |= state.angle >= max_theta;
-        }
-        end
-    })
 }
 
 #[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
 fn euler_1(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
+    end_time: f64,
     history_interval: usize,
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
     let history = schwarz_rs::simulate_conditions(
         initial_condition.into(),
-        end_condition,
+        end_time,
         history_interval,
         time_step,
         schwarz_rs::EulerSolve1::new(),
@@ -235,20 +172,17 @@ fn euler_1(
 }
 
 #[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
 fn euler_2(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
+    end_time: f64,
     history_interval: usize,
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
     let history = schwarz_rs::simulate_conditions(
         initial_condition.into(),
-        end_condition,
+        end_time,
         history_interval,
         time_step,
         schwarz_rs::EulerSolve2,
@@ -258,20 +192,17 @@ fn euler_2(
 }
 
 #[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
 fn euler_3(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
+    end_time: f64,
     history_interval: usize,
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
     let history = schwarz_rs::simulate_conditions(
         initial_condition.into(),
-        end_condition,
+        end_time,
         history_interval,
         time_step,
         schwarz_rs::EulerSolve3,
@@ -281,20 +212,17 @@ fn euler_3(
 }
 
 #[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, history_interval = 1, *, max_time = None, max_r = None, max_theta = None))]
+#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
 fn euler_4(
     py: Python,
     initial_condition: BodyParameters,
     time_step: f64,
+    end_time: f64,
     history_interval: usize,
-    max_time: Option<f64>,
-    max_r: Option<f64>,
-    max_theta: Option<f64>,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let end_condition = make_end_condition(max_time, max_r, max_theta)?;
     let history = schwarz_rs::simulate_conditions(
         initial_condition.into(),
-        end_condition,
+        end_time,
         history_interval,
         time_step,
         schwarz_rs::EulerSolve3,

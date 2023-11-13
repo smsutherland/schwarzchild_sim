@@ -30,22 +30,22 @@ pub fn schwarzchild_radius(mass: f64) -> f64 {
 
 pub fn simulate_conditions<S: Solver>(
     mut initial_condition: BodyParameters,
-    end: impl Fn(&BodyParameters, f64) -> bool,
+    max_t: f64,
     history_interval: usize,
     mut time_step: f64,
     mut solver: S,
 ) -> Result<Array2<f64>, &'static str> {
     let time_step_in_s = time_step;
+    let iters = (max_t / time_step).ceil() as usize;
 
-    let mut history = Vec::new();
-    let mut steps = 0;
+    let mut history = Vec::with_capacity(iters / history_interval + 100);
     let mut positive_v = true;
 
     solver.init(&mut initial_condition, &mut time_step);
 
-    while !end(&initial_condition, steps as f64 * time_step_in_s) {
+    for i in 0..iters {
         solver.step(&mut initial_condition, time_step);
-        if steps % history_interval == 0 || {
+        if i % history_interval == 0 || {
             let changed = (initial_condition.radial_velocity >= 0.) ^ positive_v;
             if changed {
                 positive_v = !positive_v;
@@ -55,14 +55,10 @@ pub fn simulate_conditions<S: Solver>(
             history.push([
                 initial_condition.radius,
                 initial_condition.angle,
-                steps as f64 * time_step_in_s,
+                i as f64 * time_step_in_s,
             ]);
-            print!(
-                "\r{:.2}%",
-                100. * initial_condition.angle / 20. / std::f64::consts::PI
-            );
+            print!("\r{:.2}%", 100. * i as f32 / iters as f32);
         }
-        steps += 1;
     }
 
     println!("\r100.00%");

@@ -1,9 +1,18 @@
-import matplotlib.pyplot as plt
 import schwarz.util
+import astropy.units as u
 
-m = schwarz.mercury_orbit
+m = schwarz.presets.mercury_orbit
 
-res = schwarz.simulate.simulate_euler_1(m, 1e-1, 10000, max_theta=2*3.14)
+res1 = schwarz.simulate.euler_1(m, 1e-1, 1e9, 10000)
+res2 = schwarz.simulate.euler_2(m, 1e-1, 1e9, 10000)
+res3 = schwarz.simulate.euler_3(m, 1e-1, 1e9, 10000)
+res4 = schwarz.simulate.euler_4(m, 1e-1, 1e9, 10000)
 
-schwarz.util.plot_orbit(res)
-plt.show()
+precession1 = schwarz.util.calculate_precession(res1).to(u.arcsec / u.century)
+precession2 = schwarz.util.calculate_precession(res2).to(u.arcsec / u.century)
+precession3 = schwarz.util.calculate_precession(res3).to(u.arcsec / u.century)
+precession4 = schwarz.util.calculate_precession(res4).to(u.arcsec / u.century)
+print(precession1)
+print(precession2)
+print(precession3)
+print(precession4)
