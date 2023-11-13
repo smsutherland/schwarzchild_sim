@@ -61,7 +61,7 @@ def plot_effective_potential(
     plt.legend()
 
 
-def calculate_precession(orbit: np.ndarray, per_orbit: bool = False):
+def calculate_precession(orbit: np.ndarray, per_orbit: bool = False) -> float:
     """
     calculate the precession of the periapsis of the orbit,
     as returned by schwarzchild_sim.simulate_conditions_rel
@@ -83,7 +83,7 @@ def calculate_precession(orbit: np.ndarray, per_orbit: bool = False):
         return average_change / average_change_time * u.rad / u.s
 
 
-def calculate_expected_precession(params: BodyParameters):
+def calculate_expected_precession(params: BodyParameters) -> float:
     """
     calculate the expected precession of the periapsis of the orbit.
     Takes in a BodyParameters object
@@ -98,7 +98,7 @@ def calculate_expected_precession(params: BodyParameters):
     )
 
 
-def calculate_orbital_period(orbit: np.ndarray):
+def calculate_orbital_period(orbit: np.ndarray) -> float:
     """
     calculate the period of the orbit,
     as returned by schwarzchild_sim.simulate_conditions_rel
