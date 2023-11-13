@@ -160,7 +160,7 @@ fn euler_1(
     end_time: f64,
     history_interval: usize,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_conditions(
+    let history = schwarz_rs::simulate_euler(
         initial_condition.into(),
         end_time,
         history_interval,
@@ -180,7 +180,7 @@ fn euler_2(
     end_time: f64,
     history_interval: usize,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_conditions(
+    let history = schwarz_rs::simulate_euler(
         initial_condition.into(),
         end_time,
         history_interval,
@@ -200,7 +200,7 @@ fn euler_3(
     end_time: f64,
     history_interval: usize,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_conditions(
+    let history = schwarz_rs::simulate_euler(
         initial_condition.into(),
         end_time,
         history_interval,
@@ -220,12 +220,12 @@ fn euler_4(
     end_time: f64,
     history_interval: usize,
 ) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_conditions(
+    let history = schwarz_rs::simulate_euler(
         initial_condition.into(),
         end_time,
         history_interval,
         time_step,
-        schwarz_rs::EulerSolve3,
+        schwarz_rs::EulerSolve4,
     )
     .map_err(PyValueError::new_err)?;
     Ok(history.to_pyarray(py))
