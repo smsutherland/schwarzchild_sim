@@ -13,7 +13,7 @@ pub fn simulate_euler(
     history_interval: usize,
     mut time_step: f64,
     mut solver: impl Euler,
-) -> Result<Array2<f64>, &'static str> {
+) -> Array2<f64> {
     let time_step_in_s = time_step;
     let iters = (max_t / time_step).ceil() as usize;
 
@@ -41,7 +41,7 @@ pub fn simulate_euler(
     }
 
     println!("\r100.00%");
-    Ok(Array2::from(history))
+    Array2::from(history)
 }
 
 pub struct EulerSolve1 {

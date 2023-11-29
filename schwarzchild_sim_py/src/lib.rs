@@ -1,5 +1,5 @@
 use numpy::ToPyArray;
-use pyo3::{exceptions::PyValueError, prelude::*};
+use pyo3::prelude::*;
 use schwarzchild_sim as schwarz_rs;
 
 /// Some docs
@@ -167,8 +167,7 @@ fn euler_1(
         history_interval,
         time_step,
         schwarz_rs::EulerSolve1::new(),
-    )
-    .map_err(PyValueError::new_err)?;
+    );
     Ok(history.to_pyarray(py))
 }
 
@@ -187,8 +186,7 @@ fn euler_2(
         history_interval,
         time_step,
         schwarz_rs::EulerSolve2,
-    )
-    .map_err(PyValueError::new_err)?;
+    );
     Ok(history.to_pyarray(py))
 }
 
@@ -207,8 +205,7 @@ fn euler_3(
         history_interval,
         time_step,
         schwarz_rs::EulerSolve3,
-    )
-    .map_err(PyValueError::new_err)?;
+    );
     Ok(history.to_pyarray(py))
 }
 
@@ -227,8 +224,9 @@ fn euler_4(
         history_interval,
         time_step,
         schwarz_rs::EulerSolve4,
-    )
-    .map_err(PyValueError::new_err)?;
+    );
+    Ok(history.to_pyarray(py))
+}
 
 #[pyfunction]
 #[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]

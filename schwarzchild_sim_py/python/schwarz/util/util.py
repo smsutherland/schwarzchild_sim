@@ -9,7 +9,7 @@ from schwarz import _inner
 u.century = u.def_unit("century", 100 * u.yr, "A century. 100 years.")
 
 
-def plot_orbit(orbit: np.ndarray, mass: Optional[float] = None):
+def plot_orbit(orbit: np.ndarray, mass: Optional[float] = None) -> plt.Figure:
     """
     Plots an orbit as returned from schwarzchild_sim.simulate_conditions_rel.
     If mass is provided, the schwarzchild radius is also plotted.
@@ -19,13 +19,17 @@ def plot_orbit(orbit: np.ndarray, mass: Optional[float] = None):
     r = orbit[0]
     theta = orbit[1]
 
-    plt.polar(theta, r, label="orbit")
+    fig = plt.figure()
+    ax = plt.subplot(111, projection="polar")
+
+    ax.plot(theta, r, label="orbit")
 
     if mass is not None:
         r = (2.0 * c.G * mass / c.c**2 * u.kg).to_value(u.m) * np.ones(100)
         theta = np.linspace(0, 2.0 * np.pi, 100, endpoint=True)
-        plt.polar(theta, r, label="Schwarzchild radius")
-        plt.legend()
+        ax.polar(theta, r, label="Schwarzchild radius")
+        ax.legend()
+    return fig
 
 
 def plot_effective_potential(
