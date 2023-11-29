@@ -121,6 +121,7 @@ fn simulate_module(py: Python) -> PyResult<&'_ PyModule> {
     m.add_function(wrap_pyfunction!(euler_2, m)?)?;
     m.add_function(wrap_pyfunction!(euler_3, m)?)?;
     m.add_function(wrap_pyfunction!(euler_4, m)?)?;
+    m.add_function(wrap_pyfunction!(modified_midpoint, m)?)?;
     Ok(m)
 }
 
@@ -228,5 +229,21 @@ fn euler_4(
         schwarz_rs::EulerSolve4,
     )
     .map_err(PyValueError::new_err)?;
+
+#[pyfunction]
+#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
+fn modified_midpoint(
+    py: Python,
+    initial_condition: BodyParameters,
+    time_step: f64,
+    end_time: f64,
+    history_interval: usize,
+) -> PyResult<&numpy::PyArray2<f64>> {
+    let history = schwarz_rs::simulate_mm(
+        initial_condition.into(),
+        end_time,
+        history_interval,
+        time_step,
+    );
     Ok(history.to_pyarray(py))
 }
