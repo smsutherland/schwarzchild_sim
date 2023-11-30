@@ -1,5 +1,8 @@
 mod euler;
-pub use euler::{simulate_euler, EulerSolve1, EulerSolve2, EulerSolve3, EulerSolve4};
+pub use euler::{simulate_euler_1, simulate_euler_2, simulate_euler_3, simulate_euler_4};
 
 mod mm;
 pub use mm::simulate_mm;
+
+mod rk;
+pub use rk::simulate_rk4;

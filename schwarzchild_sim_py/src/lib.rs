@@ -114,134 +114,36 @@ fn schwarz(py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
+macro_rules! add_fn {
+    ($m:ident $rs_name:ident $py_name:ident) => {
+        #[pyfunction]
+        #[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
+        fn $py_name(
+            py: Python,
+            initial_condition: BodyParameters,
+            time_step: f64,
+            end_time: f64,
+            history_interval: usize,
+        ) -> PyResult<&numpy::PyArray2<f64>> {
+            let history = schwarz_rs::$rs_name(
+                initial_condition.into(),
+                end_time,
+                history_interval,
+                time_step,
+            );
+            Ok(history.to_pyarray(py))
+        }
+        $m.add_function(wrap_pyfunction!($py_name, $m)?)?;
+    };
+}
+
 fn simulate_module(py: Python) -> PyResult<&'_ PyModule> {
     let m = PyModule::new(py, "simulate")?;
-    m.add_function(wrap_pyfunction!(run, m)?)?;
-    m.add_function(wrap_pyfunction!(euler_1, m)?)?;
-    m.add_function(wrap_pyfunction!(euler_2, m)?)?;
-    m.add_function(wrap_pyfunction!(euler_3, m)?)?;
-    m.add_function(wrap_pyfunction!(euler_4, m)?)?;
-    m.add_function(wrap_pyfunction!(modified_midpoint, m)?)?;
+    add_fn!(m simulate_euler_1 euler_1);
+    add_fn!(m simulate_euler_2 euler_2);
+    add_fn!(m simulate_euler_3 euler_3);
+    add_fn!(m simulate_euler_4 euler_4);
+    add_fn!(m simulate_mm modified_midpoint );
+    add_fn!(m simulate_rk4 rk4 );
     Ok(m)
-}
-
-#[pyclass]
-#[derive(Debug, Clone, Copy)]
-enum Solvers {
-    Euler1,
-    Euler2,
-    Euler3,
-    Euler4,
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, solver, end_time, history_interval = 1))]
-fn run(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    solver: Solvers,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    match solver {
-        Solvers::Euler1 => euler_1(py, initial_condition, time_step, end_time, history_interval),
-        Solvers::Euler2 => euler_2(py, initial_condition, time_step, end_time, history_interval),
-        Solvers::Euler3 => euler_3(py, initial_condition, time_step, end_time, history_interval),
-        Solvers::Euler4 => euler_4(py, initial_condition, time_step, end_time, history_interval),
-    }
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
-fn euler_1(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_euler(
-        initial_condition.into(),
-        end_time,
-        history_interval,
-        time_step,
-        schwarz_rs::EulerSolve1::new(),
-    );
-    Ok(history.to_pyarray(py))
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
-fn euler_2(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_euler(
-        initial_condition.into(),
-        end_time,
-        history_interval,
-        time_step,
-        schwarz_rs::EulerSolve2,
-    );
-    Ok(history.to_pyarray(py))
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
-fn euler_3(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_euler(
-        initial_condition.into(),
-        end_time,
-        history_interval,
-        time_step,
-        schwarz_rs::EulerSolve3,
-    );
-    Ok(history.to_pyarray(py))
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
-fn euler_4(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_euler(
-        initial_condition.into(),
-        end_time,
-        history_interval,
-        time_step,
-        schwarz_rs::EulerSolve4,
-    );
-    Ok(history.to_pyarray(py))
-}
-
-#[pyfunction]
-#[pyo3(signature = (initial_condition, time_step, end_time, history_interval = 1))]
-fn modified_midpoint(
-    py: Python,
-    initial_condition: BodyParameters,
-    time_step: f64,
-    end_time: f64,
-    history_interval: usize,
-) -> PyResult<&numpy::PyArray2<f64>> {
-    let history = schwarz_rs::simulate_mm(
-        initial_condition.into(),
-        end_time,
-        history_interval,
-        time_step,
-    );
-    Ok(history.to_pyarray(py))
 }

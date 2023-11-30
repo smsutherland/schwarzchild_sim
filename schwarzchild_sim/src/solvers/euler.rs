@@ -171,3 +171,63 @@ impl Euler for EulerSolve4 {
         condition.radial_velocity += dv;
     }
 }
+
+pub fn simulate_euler_1(
+    initial_condition: BodyParameters,
+    max_t: f64,
+    history_interval: usize,
+    time_step: f64,
+) -> Array2<f64> {
+    simulate_euler(
+        initial_condition,
+        max_t,
+        history_interval,
+        time_step,
+        EulerSolve1::new(),
+    )
+}
+
+pub fn simulate_euler_2(
+    initial_condition: BodyParameters,
+    max_t: f64,
+    history_interval: usize,
+    time_step: f64,
+) -> Array2<f64> {
+    simulate_euler(
+        initial_condition,
+        max_t,
+        history_interval,
+        time_step,
+        EulerSolve2,
+    )
+}
+
+pub fn simulate_euler_3(
+    initial_condition: BodyParameters,
+    max_t: f64,
+    history_interval: usize,
+    time_step: f64,
+) -> Array2<f64> {
+    simulate_euler(
+        initial_condition,
+        max_t,
+        history_interval,
+        time_step,
+        EulerSolve3,
+    )
+}
+
+pub fn simulate_euler_4(
+    initial_condition: BodyParameters,
+    max_t: f64,
+    history_interval: usize,
+    time_step: f64,
+) -> Array2<f64> {
+    simulate_euler(
+        initial_condition,
+        max_t,
+        history_interval,
+        time_step,
+        EulerSolve4,
+    )
+}
